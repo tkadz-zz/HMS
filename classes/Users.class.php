@@ -3,15 +3,76 @@
 
 class Users extends Dbh
 {
+    protected function resetUserPassword($id){
+        $pass = '';
+        $sql = "UPDATE users SET password=? WHERE id=?";
+        $stmt = $this->con()->prepare($sql);
+        if($stmt->execute([$pass, $id])){
+            $_SESSION['type'] = 's';
+            $_SESSION['err'] = 'Password Reset Successfully';
+            echo "<script type='text/javascript'>;
+                      history.back(-1);
+                    </script>";
+        }
+        else{
+            $_SESSION['type'] = 's';
+            $_SESSION['err'] = 'Opps! Something went wrong';
+            echo "<script type='text/javascript'>;
+                      history.back(-1);
+                    </script>";
+        }
+    }
 
 
-    protected function setAppointment($patientID, $doctorID, $appDate, $appID){
+    protected function GetAppByAppID($patientID, $appDate, $doctorID){
+        $sql = "SELECT * FROM appointments WHERE appDateWork=? AND doctorID=? ORDER BY id ASC ";
+        $stmt = $this->con()->prepare($sql);
+        $stmt->execute([$appDate, $doctorID]);
+        return $stmt->fetchAll();
+    }
+
+
+    protected function checkAppointment($patientID, $appDate,$appFrom, $appTo, $doctorID){
+        $sql = "SELECT * FROM appointments WHERE appDateWork=? AND doctorID=? ORDER BY id ASC ";
+        $stmt = $this->con()->prepare($sql);
+        $stmt->execute([$appDate, $doctorID]);
+        $rows = $stmt->fetchAll();
+        $c = 0;
+
+        if(count($rows) > 0){
+            $c++;
+            $_SESSION['type'] = 's';
+            $_SESSION['err'] = 'Showing Appointments on '.$this->dateToDay($appDate) ;
+            $_SESSION['tempAppDate'] = $appDate;
+            $_SESSION['tempAppFrom'] = $appFrom;
+            $_SESSION['tempAppTo'] = $appTo;
+
+            echo "<script type='text/javascript'>;
+                      window.location='../setAppointment.php?doctorID=$doctorID&userID=$patientID&num=$c';
+                    </script>";
+        }
+        else{
+            $_SESSION['type'] = 'w';
+            $_SESSION['err'] = 'No Appointments on '.$this->dateToDay($appDate) ;
+            $_SESSION['tempAppDate'] = $appDate;
+            $_SESSION['tempAppFrom'] = $appFrom;
+            $_SESSION['tempAppTo'] = $appTo;
+
+            echo "<script type='text/javascript'>;
+                      window.location='../setAppointment.php?doctorID=$doctorID&userID=$patientID';
+                    </script>";
+        }
+
+    }
+
+
+    protected function setAppointment($patientID, $doctorID, $appDate, $appFrom, $appTo, $appID){
 
         $dateAdded = date("Y-m-d h:m:i");
         $att = 0;
-        $sql = "INSERT INTO appointments(appointmentUID, patientID, doctorID, appDate, attendance, dateAdded) VALUES (?,?,?,?,?,?)";
+        $sql = "INSERT INTO appointments(appointmentUID, patientID, doctorID, appDateWork, AppFrom, appTo, attendance, dateAdded) VALUES (?,?,?,?,?,?,?,?)";
         $stmt = $this->con()->prepare($sql);
-        if($stmt->execute([$appID, $patientID, $doctorID, $appDate, $att, $dateAdded])){
+        if($stmt->execute([$appID, $patientID, $doctorID, $appDate,$appFrom, $appTo, $att, $dateAdded])){
             $_SESSION['type'] = 's';
             $_SESSION['err'] = 'Appointment Set Successfully';
             echo "<script type='text/javascript'>;

@@ -110,8 +110,9 @@ include 'includes/miniTab.inc.php';
             <div class="card-box bg-purple">
                 <div class="inner">
                     <h3> <?php
+                        $td = date('Y-m-d');
 
-                        $query = "SELECT * FROM appointments WHERE patientID='$id'";
+                        $query = "SELECT * FROM appointments WHERE patientID='$id' AND appDateWork > '$td'";
                         $o = new Userview();
                         $o->CountView($query);
                         ?>

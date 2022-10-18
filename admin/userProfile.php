@@ -12,7 +12,7 @@ include 'includes/miniTab.inc.php';
 <?php
 
 $studentProfile = new Userview();
-$studentProfile->adminProfile($_SESSION['id']);
+$studentProfile->userProfile($_GET['userID']);
 
 ?>
 

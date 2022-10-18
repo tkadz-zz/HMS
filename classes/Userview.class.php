@@ -3,9 +3,8 @@
 class Userview extends Users
 {
 
-
-    public function viewPatientAppointmentsLoop($id){
-        $appRows = $this->GetAppontmentByPatientID($id);
+    public function viewPatientAppointmentsLoopByAppID($patientID, $appDate, $doctorID){
+        $appRows = $this->GetAppByAppID($patientID, $appDate, $doctorID);
         if(count($appRows) > 0){
             $s = 0;
             foreach ($appRows as $appRow){
@@ -18,7 +17,36 @@ class Userview extends Users
                     <td><?php echo $patientRows[0]['name'] .' '. $patientRows[0]['surname'] ?></td>
                     <td><?php echo $doctorRows[0]['name'] .' '. $doctorRows[0]['surname'] ?></td>
                     <td><a href="appointmentDetails.php?appID=<?php echo $appRow['appointmentUID'] ?>"><?php echo $appRow['appointmentUID'] ?></a> </td>
-                    <td><?php echo $this->dateToDay($appRow['appDate'])?></td>
+                    <td><?php echo $this->dateToDay($appRow['appDateWork'])?> FROM <?php echo $appRow['appFrom'] ?> TO <?php echo $appRow['appTo'] ?> </td>
+                </tr>
+                <?php
+            }
+        }
+    }
+
+
+    public function viewPatientAppointmentsLoop($id){
+        $appRows = $this->GetAppontmentByPatientID($id);
+        if(count($appRows) > 0){
+            $s = 0;
+            foreach ($appRows as $appRow){
+                $patientRows = $this->GetPatientByID($appRow['patientID']);
+                $doctorRows = $this->GetDoctorByID($appRow['doctorID']);
+                $s++;
+                if($appRow['appDateWork'] > date('Y-m-d')){
+                    $cl = 'success';
+                }
+                else{
+                    $cl = 'danger';
+                }
+
+                ?>
+                <tr>
+                    <td class="rounded badge-<?php echo $cl ?>"><?php echo $s ?> </td>
+                    <td><?php echo $patientRows[0]['name'] .' '. $patientRows[0]['surname'] ?></td>
+                    <td><?php echo $doctorRows[0]['name'] .' '. $doctorRows[0]['surname'] ?></td>
+                    <td><a href="appointmentDetails.php?appID=<?php echo $appRow['appointmentUID'] ?>"><?php echo $appRow['appointmentUID'] ?></a> </td>
+                    <td class="badge-<?php echo $cl ?>" ><?php echo $this->dateToDay($appRow['appDateWork'])?> FROM <?php echo $appRow['appFrom'] ?> TO <?php echo $appRow['appTo'] ?> </td>
                 </tr>
                 <?php
             }
@@ -33,13 +61,19 @@ class Userview extends Users
                 $patientRows = $this->GetPatientByID($appRow['patientID']);
                 $doctorRows = $this->GetDoctorByID($appRow['doctorID']);
                 $s++;
+                if($appRow['appDateWork'] > date('Y-m-d')){
+                    $cl = 'success';
+                }
+                else{
+                    $cl = 'danger';
+                }
                 ?>
                 <tr>
-                    <td><?php echo $s ?> </td>
+                    <td class="rounded badge-<?php echo $cl ?>"><?php echo $s ?> </td>
                     <td><?php echo $patientRows[0]['name'] .' '. $patientRows[0]['surname'] ?></td>
                     <td><?php echo $doctorRows[0]['name'] .' '. $doctorRows[0]['surname'] ?></td>
                     <td><a href="appointmentDetails.php?appID=<?php echo $appRow['appointmentUID'] ?>"><?php echo $appRow['appointmentUID'] ?></a> </td>
-                    <td><?php echo $this->dateToDay($appRow['appDate'])?></td>
+                    <td class="badge-<?php echo $cl ?>" ><?php echo $this->dateToDay($appRow['appDateWork'])?> FROM <?php echo $appRow['appFrom'] ?> TO <?php echo $appRow['appTo'] ?> </td>
                 </tr>
                 <?php
             }
@@ -74,10 +108,14 @@ class Userview extends Users
                             </ul>
                         </div>
                         <hr>
-                        <div>
+                        <div class="row mt-2 text-center">
                             <h6 class="card-header">Appointment</h6>
-                            <br>
-                            <label class="card-description">Appointment Date and time: <?php echo $this->dateTimeToDay($appRows[0]['appDate']) ?></label>
+                                <span class="p-1">Appointment Date: <?php echo $this->dateToDay($appRows[0]['appDateWork']) ?></span>
+                                <br>
+                                <span class="p-1">From: <?php echo $appRows[0]['appFrom'] ?></span>
+                                <br>
+                                <span class="p-1">To: <?php echo $appRows[0]['appTo'] ?></span>
+                            </span>
                         </div>
 
                     </div>
@@ -97,10 +135,9 @@ class Userview extends Users
         }
     }
 
-    public function viewSetApointment($id){
+
+    public function viewSetApointmentCheck($id){
         $userRows = $this->GetPatientByID($id);
-        $str=rand();
-        $result = md5($str);
         ?>
 
         <div class="row">
@@ -108,28 +145,39 @@ class Userview extends Users
                 <div class="p-3 py-5">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4 class="text-right">Set Appointment For <?php echo $userRows[0]['name'] .' '. $userRows[0]['surname'] ?></h4>
-                        <span class="fa" style="font-size: 13px">Appointment ID: <?php echo $result ?></span>
                     </div>
                     <hr>
-                    <form class="form" method="post" action="includes/setAppointment.inc.php?appID=<?php echo $result ?>&userID=<?php echo $id ?>" >
+                    <form class="form" method="post" action="includes/checkAppointment.inc.php?userID=<?php echo $id ?>" >
+                        <span class="card-description">Input details to check if there are any appointments for the date you provide</span>
+                        <br>
                         <div class="row mt-2">
                             <div class="col-md-6">
                                 <label class="labels">Appointment Date</label>
-                                <?php echo date('Y-m-d').'T'. date('h:m:i') ?>
-                                <input id="text" min="<?php echo date('Y-m-d', strtotime("+1 day")).'T'.date('h:m')  ?>" name="AppDate" type="datetime-local" class="form-control" minlength="8" required>
+                                <input id="text" min="<?php echo date('Y-m-d', strtotime("+1 day")) ?>" name="AppDate" type="date" class="form-control" minlength="8" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="labels">Doctor Account</label>
-                                <select class="form-control" type="text" name="doctorID" required>
-                                    <option value="">-- SELECT DOCTOR ACCOUNT --</option>
+                                <label class="labels">Select Doctor</label>
+                                <select class="form-control" name="doctorID">
                                     <?php
-                                    $this->doctorOptionLoop();
+                                    echo $this->doctorOptionLoop();
                                     ?>
                                 </select>
                             </div>
+
+                            <div class="row mt-2 pt-3">
+                                <div class="col-md-3">
+                                    <label class="labels">From</label>
+                                    <input id="text" name="appFrom" type="time" class="form-control" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="labels">To</label>
+                                    <input id="text" name="appTo" type="time" class="form-control" required>
+                                </div>
+                            </div>
+
                         </div>
                         <div class="mt-5 text-center">
-                            <button id="save-btn" name="btn_setApp" class="btn btn-primary" type="submit">Submit</button>
+                            <button id="save-btn" name="btn_setApp" class="btn btn-primary" type="submit">Check</button>
                         </div>
                     </form>
                 </div>
@@ -138,6 +186,85 @@ class Userview extends Users
 
         <?php
     }
+
+    public function viewSetApointment($patientID){
+        $userRows = $this->GetPatientByID($patientID);
+        $str=rand();
+        $result = md5($str);
+        ?>
+
+        <div class="row">
+            <div class="col-md-12 border-right card rounded -card-body">
+                <div class="p-3 py-5">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="text-right">Approve This Appointment For <?php echo $userRows[0]['name'] .' '. $userRows[0]['surname'] ?></h4>
+                        <span class="fa" style="font-size: 13px">Appointment ID: <?php echo $result ?></span>
+                    </div>
+                    <hr>
+                    <form class="form" method="post" action="includes/setAppointment.inc.php?appID=<?php echo $result ?>&userID=<?php echo $patientID ?>&doctorID=<?php echo $_GET['doctorID'] ?>" >
+                        <div class="row mt-2 text-center">
+                            <span style="font-size: 14px">
+                                <?php
+                                $doctorRows = $this->GetDoctorByID($_GET['doctorID']);
+                                ?>
+                                Doctor: <a href="doctorDetails.php?userID=<?php echo $doctorRows[0]['userID'] ?>"> DR <?php echo $doctorRows[0]['name'] ?> <?php echo $doctorRows[0]['surname'] ?></a>
+                                <br>
+                                Date: <?php echo $this->dateToDay($_SESSION['tempAppDate']) ?>
+                                <br>
+                                From: <?php echo $_SESSION['tempAppFrom'] ?>
+                                <br>
+                                To: <?php echo $_SESSION['tempAppTo'] ?>
+                            </span>
+                        </div>
+                        <div class="mt-5 text-center">
+                            <button id="save-btn" name="btn_setApp" class="btn btn-primary" type="submit">YES <span class="fa fa-check-circle"></span></button>
+                            <a href="checkAppointment.php?userID=<?php echo $patientID ?>" id="save-btn" name="btn_cancelApp" class="btn btn-danger" type="">NO <span class="fa fa-times-circle"></span></a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <?php
+    }
+
+
+    public function viewAppointmentsLoopByAppDate($patientID, $appDate, $doctorID){
+        ?>
+        <div id="--printableArea" class="card-box">
+            <h4 class="mt-0 header-title"></h4>
+            <p class="text-muted font-14 mb-3">
+                All Patient's Appointments
+            </p>
+            <table id="datatable" class="table table-bordered dt-responsive nowrap">
+
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Appointment ID</th>
+                    <th>Appointment Date</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <?php
+                $n = new Userview();
+                $n->viewPatientAppointmentsLoopByAppID($patientID, $appDate, $doctorID);
+                ?>
+                </tbody>
+
+
+            </table>
+        </div>
+        <?php
+    }
+
+
+
+
+
 
     public function receptionistProfile(){
         $userRows = $this->GetReceptionistByID($_SESSION['id']);
@@ -597,6 +724,73 @@ class Userview extends Users
         </div>
         <?php
     }
+
+    public function viewChangeUserPassword($id){
+        ?>
+        <div class="container card-body col-md-12 card grid-margin stretch-card rounded bg-white mt-4 mb-4">
+            <div class="row">
+                <div class="col-md-5 border-right">
+                    <div class="p-3 py-5">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="text-right">Profile Settings</h4>
+
+                        </div>
+                        <form method="post" action="includes/updatePassword.inc.php" >
+
+                            <div class="mt-5 text-center">
+                                <button id="save-btn" name="btn_updatePassword" class="btn btn-primary" type="submit">Update Password</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="p-3 py-5">
+                        <div class="d-flex justify-content-between align-items-center experience">
+                            <span>Additional Settings</span>
+                        </div>
+                        <hr>
+                        <a href="profile.php" class="btn btn-dark align-items-center"> <span class="fa fa-user-edit"></span> Update Profile <span class="fa fa-arrow-right"></span></a>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <?php
+    }
+
+
+    public function userProfile($id){
+        $rows = $this->GetUserByID($id);
+        $userRows = $this->isUser($id, $rows[0]['role']);
+        ?>
+        <br>
+        <div class="btn btn-outline-secondary btn-sm rounded text-decoration-none" data-size="large"><a href="dashboard.php" class="fb-xfbml-parse-ignore"><span class="fa fa-chevron-circle-left"></span> Back</a></div>
+        <br>
+
+        <div class="container card-body card grid-margin stretch-card rounded bg-white mt-4 mb-4">
+            <div class="row">
+
+                <div class="col-md-12 border-right">
+                    <div class="d-flex flex-column align-items-center text-center p-3 py-5">
+                        <span class="font-weight-bold">Name:<br> <?php echo $userRows[0]['name'] .' '. $userRows[0]['surname']   ?></span>
+                        <br>
+                        <span>User Account: <?php echo $rows[0]['role'] ?> </span>
+                        <br>
+                        <span>Joined: <?php echo $this->dateTimeToDay($rows[0]['joined']) ?> </span>
+                        <br>
+                    </div>
+
+                    <a onclick="return confirm('Are you sure you want to reset user password?')" href="includes/resetUserPassword.inc.php?userID=<?php echo $id ?>" class="btn btn-outline-primary"> Reset User Password</a>
+
+                </div>
+                </div>
+        </div>
+        <?php
+    }
+
+
 
     public function viewChangePassword(){
         ?>
@@ -1378,7 +1572,7 @@ class Userview extends Users
         <?php
         if($_SESSION['role'] == 'receptionist'){
             ?>
-            <a href="setAppointment.php?userID=<?php echo $id ?>" class="btn btn-outline-primary"> <span class="fa fa-meetup"></span> Appointment <span class="fa fa-chevron-right"></span> </a>
+            <a href="checkAppointment.php?userID=<?php echo $id ?>" class="btn btn-outline-primary"> <span class="fa fa-meetup"></span> Appointment <span class="fa fa-chevron-right"></span> </a>
             <?php
         }
         ?>
@@ -1607,7 +1801,7 @@ class Userview extends Users
                     }
                     else{
                         ?>
-                        <a href="#!"><span class="fa fa-pencil badge badge-primary"> More <span class="fa fa-chevron-circle-right"></span> </span></a>
+                        <a href="userProfile.php?userID=<?php echo $row['id'] ?>"><span class="fa fa-pencil badge badge-primary"> More <span class="fa fa-chevron-circle-right"></span> </span></a>
                         <?php
                     }
                     ?>

@@ -1,14 +1,23 @@
 <?php
 class Usercontr extends Users{
 
+    public function resetUserPassword($id){
+        parent::resetUserPassword($id);
+    }
+
+    public function checkAppointment($patientID, $appDate,$appFrom, $appTo, $doctorID)
+    {
+        parent::checkAppointment($patientID, $appDate,$appFrom, $appTo, $doctorID);
+    }
+
     public function updatePatientProfile($loginID, $name, $surname, $nationalID, $dob, $sex, $phone, $address, $medicalName, $medicalPlan, $nokname, $noksurname, $nokPhone, $id)
     {
         parent::updatePatientProfile($loginID, $name, $surname, $nationalID, $dob, $sex, $phone, $address, $medicalName, $medicalPlan, $nokname, $noksurname, $nokPhone, $id);
     }
 
-    public function setAppointment($patientID, $doctorID, $appDate, $appID)
+    public function setAppointment($patientID, $doctorID, $appDate, $appFrom, $appTo, $appID)
     {
-        parent::setAppointment($patientID, $doctorID, $appDate, $appID);
+        parent::setAppointment($patientID, $doctorID, $appDate, $appFrom, $appTo, $appID);
     }
 
     public function updateReceptionistProfile($name, $surname, $hospital, $loginID, $id)

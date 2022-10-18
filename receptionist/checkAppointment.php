@@ -15,35 +15,8 @@ $n->viewSetApointmentCheck($_GET['userID']);
 
 ?>
 
-    <br>
-
-    <div id="--printableArea" class="card-box">
-        <h4 class="mt-0 header-title"></h4>
-        <p class="text-muted font-14 mb-3">
-            All Patient's Appointments
-        </p>
-        <table id="datatable" class="table table-bordered dt-responsive nowrap">
-
-            <thead>
-            <tr>
-                <th>#</th>
-                <th>Patient</th>
-                <th>Doctor</th>
-                <th>Appointment ID</th>
-                <th>Appointment Date</th>
-            </tr>
-            </thead>
-
-            <tbody>
-            <?php
-            $n = new Userview();
-            $n->viewPatientAppointmentsLoop($_GET['userID']);
-            ?>
-            </tbody>
 
 
-        </table>
-    </div>
 
 
 </div>
